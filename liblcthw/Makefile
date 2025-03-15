@@ -8,11 +8,14 @@ OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
 TEST_SRC=$(wildcard tests/*_tests.c)
 TESTS=$(patsubst %.c,%,$(TEST_SRC))
 
-TARGET=build/libYOUR_LIBRARY.a
+TARGET=build/liblcthw.a
 SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
 
 # The Target Build
 all: $(TARGET) $(SO_TARGET) tests
+
+# %.o: %.c
+# 	$(CC) -c $< $(CFLAGS) -o $@
 
 dev: CFLAGS=-g -Wall -Isrc -Wall -Wextra $(OPTFLAGS)
 dev: all
@@ -30,6 +33,7 @@ build:
 	@mkdir -p bin
 
 # The Unit Tests
+
 $(TESTS): %: %.c $(TARGET)
 	$(CC) $< -o $@ $(CFLAGS) $(TARGET)
 
