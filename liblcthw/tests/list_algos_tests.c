@@ -123,11 +123,18 @@ char *test_merge_sort() {
   List_clear_destroy(lots_words);
   List_destroy(sorted);
 
+  List *lots_words2 = create_lots_words(10240);
+  List *sorted2 = List_merge_sort_bottom_up(lots_words2, (List_compare)strcmp);
+  mu_assert(is_sorted(sorted2), "Words are not sorted after merge sort.");
+
+  // the bottom up merge sort do NOT allocate new nodes.
+  // List_clear_destroy(sorted2);
+
   return NULL;
 }
 
 // answer
-inline void ListNode_swap(ListNode *a, ListNode *b) {
+static void ListNode_swap(ListNode *a, ListNode *b) {
   void *temp = a->value;
   a->value = b->value;
   b->value = temp;
@@ -156,7 +163,7 @@ int List_bubble_sort_ans(List *list, List_compare cmp) {
 }
 
 // answer
-inline List *List_merge_ans(List *left, List *right, List_compare cmp) {
+static List *List_merge_ans(List *left, List *right, List_compare cmp) {
   List *result = List_create();
   void *val = NULL;
 
@@ -214,44 +221,52 @@ List *List_merge_sort_ans(List *list, List_compare cmp) {
 char *test_performance() {
   List *words_my_bubble = create_lots_words(LOTS_WORDS_COUNT);
   List *words_my_merge = List_duplicate(words_my_bubble);
+  List *words_my_merge_btm = List_duplicate(words_my_bubble);
   List *words_ans_bubble = List_duplicate(words_my_bubble);
   List *words_ans_merge = List_duplicate(words_my_bubble);
 
-  clock_t start = clock();
-  List_bubble_sort(words_my_bubble, (List_compare)strcmp);
-  clock_t end = clock();
-  double cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
+  List *ret = NULL;
+  clock_t start, end;
+  double cpu_time_used = 0;
 
-  // 24.899026
+  start = clock();
+  List_bubble_sort(words_my_bubble, (List_compare)strcmp);
+  end = clock();
+  cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
+  // 23.770437
   printf("My bubble sort execution time: %.6f seconds\n", cpu_time_used);
 
   start = clock();
   List_bubble_sort_ans(words_ans_bubble, (List_compare)strcmp);
   end = clock();
   cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
-
-  // 55.366231
+  // 41.804159
   printf("Ans bubble sort execution time: %.6f seconds\n", cpu_time_used);
 
   start = clock();
-  List *ret = List_merge_sort(words_my_merge, (List_compare)strcmp);
+  ret = List_merge_sort(words_my_merge, (List_compare)strcmp);
   end = clock();
   cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
-
-  // 0.119743
+  // 0.088699
   printf("My merge sort execution time: %.6f seconds\n", cpu_time_used);
+  List_destroy(ret);
 
+  start = clock();
+  ret = List_merge_sort_bottom_up(words_my_merge_btm, (List_compare)strcmp);
+  end = clock();
+  cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
+  // 0.000955
+  printf("My bottom up merge sort execution time: %.6f seconds\n",
+         cpu_time_used);
   List_destroy(ret);
 
   start = clock();
   ret = List_merge_sort_ans(words_ans_merge, (List_compare)strcmp);
   end = clock();
   cpu_time_used = ((double)end - start) / CLOCKS_PER_SEC;
-
-  // 0.109449
+  // 0.108398
   printf("Ans merge sort execution time: %.6f seconds\n", cpu_time_used);
-
-  List_destroy(ret);
+  List_clear_destroy(ret);
 
   // TODO: our dup is shallow copy, so we can NOT free the value by following
   // way. List_clear_destroy(words_my_bubble);

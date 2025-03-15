@@ -135,3 +135,99 @@ List *List_merge_sort(List *list, List_compare cmp) {
 
   return ret;
 }
+
+// ---- impl of bottom to up merge sort ---------------------------------------
+
+// Split the list into two parts at the nth node.
+//
+// Returns the head of the second part
+ListNode *bottom_split(ListNode *head, int n) {
+  ListNode *cur = head;
+  while (--n && cur) {
+    cur = cur->next;
+  }
+  if (!cur) {
+    return NULL;
+  }
+
+  ListNode *right_head = cur->next;
+
+  if (right_head != NULL) {
+    right_head->prev = NULL;
+  }
+  cur->next = NULL; // do the spilt
+
+  return right_head;
+}
+
+// Merge two sorted linked lists and attach the result to prev
+void bottom_merge(ListNode *prev, ListNode *l1, ListNode *l2,
+                  List_compare cmp) {
+  ListNode *cur = prev;
+
+  // merge the two lists
+  while (l1 && l2) {
+    if (cmp(l1->value, l2->value) < 0) {
+      cur->next = l1;
+      l1 = l1->next;
+      cur->next->prev = cur;
+    } else {
+      cur->next = l2;
+      l2 = l2->next;
+      cur->next->prev = cur;
+    }
+
+    cur = cur->next;
+  }
+
+  // atach the remaining nodes
+  ListNode *remain = (l1) ? l1 : l2;
+  cur->next = remain;
+  if (remain) {
+    remain->prev = cur;
+  }
+}
+
+List *List_merge_sort_bottom_up(List *list, List_compare cmp) {
+
+  int cnt = list->count;
+
+  if (cnt <= 1) {
+    return list;
+  }
+
+  ListNode dummy_head = {};
+  dummy_head.next = list->first;
+  ListNode *prev = NULL;
+
+  for (int width = 1; width < cnt; width *= 2) {
+    // the list will be split to many batchs, every batch has `width` elems,
+    // every part has half of the batch.
+
+    ListNode *batch_begin = dummy_head.next;
+    prev = &dummy_head;
+
+    while (batch_begin != NULL) {
+      ListNode *left = batch_begin;
+      ListNode *right = bottom_split(left, width);
+      ListNode *remain = (right) ? bottom_split(right, width) : NULL;
+
+      bottom_merge(prev, left, right, cmp);
+
+      batch_begin = remain;
+    }
+  }
+
+  list->first = dummy_head.next;
+  if (list->first) {
+    list->first->prev = NULL;
+  }
+
+  ListNode *cur = list->first;
+  while (cur && cur->next) {
+    cur = cur->next;
+  }
+  list->last = cur;
+
+  return list;
+}
