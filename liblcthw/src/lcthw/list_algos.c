@@ -10,6 +10,8 @@ int List_bubble_sort(List *list, List_compare cmp) {
 
   for (; loop_end != NULL; loop_end = loop_end->prev) {
 
+    int swapped = 0;
+
     for (ListNode *cur = list->first; cur != loop_end; cur = cur->next) {
 
       ListNode *next = cur->next;
@@ -19,8 +21,14 @@ int List_bubble_sort(List *list, List_compare cmp) {
           void *tmp = cur->value;
           cur->value = next->value;
           next->value = tmp;
+
+          swapped = 1;
         }
       }
+    }
+
+    if (!swapped) {
+      return 0;
     }
   }
 
@@ -80,5 +88,17 @@ List *List_merge_sort(List *list, List_compare cmp) {
   List *left_sorted = List_merge_sort(left, cmp);
   List *right_sorted = List_merge_sort(right, cmp);
 
-  return merge_sorted_lists(left_sorted, right_sorted, cmp);
+  if (left_sorted != left) {
+    List_destroy(left);
+  }
+  if (right_sorted != right) {
+    List_destroy(right);
+  }
+
+  List *ret = merge_sorted_lists(left_sorted, right_sorted, cmp);
+
+  List_destroy(left_sorted);
+  List_destroy(right_sorted);
+
+  return ret;
 }
