@@ -1,5 +1,6 @@
 #include <lcthw/list.h>
 #include <lcthw/list_algos.h>
+#include <stdlib.h>
 
 int List_bubble_sort(List *list, List_compare cmp) {
   ListNode *loop_end = list->last;
@@ -35,12 +36,44 @@ int List_bubble_sort(List *list, List_compare cmp) {
   return 0;
 }
 
+// 相比于创建链表再排序：
+// 减少了内存的申请和释放的开销
+List *List_insert_sorted(List *sorted_list, ListNode *node, List_compare cmp) {
+
+  // the val will be insert to the left of `insert_place`
+  ListNode *right = sorted_list->first;
+
+  for (; right != NULL; right = right->next) {
+    if (cmp(right->value, node->value) > 0) {
+      break;
+    }
+  }
+
+  ListNode *left = right->prev;
+  if (left == NULL) {
+    // means the `right` is the first, and the `val` will be the first node.
+    node->next = sorted_list->first;
+    sorted_list->first->prev = node;
+    sorted_list->first = node;
+  } else {
+    node->prev = left;
+    node->next = right;
+    left->next = node;
+    right->prev = node;
+  }
+
+  sorted_list->count++;
+  return sorted_list;
+}
+
 static List *merge_sorted_lists(List *left, List *right, List_compare cmp) {
   List *l = List_create();
 
   ListNode *left_cur = left->first;
   ListNode *right_cur = right->first;
 
+  // NOTE: in this func, we can NOT use `List_insert_sorted`, it will update the
+  // node's `left` and `right` in place, and break the chain of origin list.
   while (left_cur != NULL && right_cur != NULL) {
 
     if (cmp(left_cur->value, right_cur->value) < 0) {
