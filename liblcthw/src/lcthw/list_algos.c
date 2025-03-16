@@ -161,8 +161,9 @@ ListNode *bottom_split(ListNode *head, int n) {
 }
 
 // Merge two sorted linked lists and attach the result to prev
-void bottom_merge(ListNode *prev, ListNode *l1, ListNode *l2,
-                  List_compare cmp) {
+// Returns the new tail of the merged list
+ListNode *bottom_merge(ListNode *prev, ListNode *l1, ListNode *l2,
+                       List_compare cmp) {
   ListNode *cur = prev;
 
   // merge the two lists
@@ -185,7 +186,14 @@ void bottom_merge(ListNode *prev, ListNode *l1, ListNode *l2,
   cur->next = remain;
   if (remain) {
     remain->prev = cur;
+
+    // Move cur to the end of the remaining part
+    while (cur->next) {
+      cur = cur->next;
+    }
   }
+
+  return cur;
 }
 
 List *List_merge_sort_bottom_up(List *list, List_compare cmp) {
@@ -212,7 +220,7 @@ List *List_merge_sort_bottom_up(List *list, List_compare cmp) {
       ListNode *right = bottom_split(left, width);
       ListNode *remain = (right) ? bottom_split(right, width) : NULL;
 
-      bottom_merge(prev, left, right, cmp);
+      prev = bottom_merge(prev, left, right, cmp);
 
       batch_begin = remain;
     }
@@ -223,11 +231,7 @@ List *List_merge_sort_bottom_up(List *list, List_compare cmp) {
     list->first->prev = NULL;
   }
 
-  ListNode *cur = list->first;
-  while (cur && cur->next) {
-    cur = cur->next;
-  }
-  list->last = cur;
+  list->last = prev;
 
   return list;
 }
