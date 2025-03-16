@@ -73,4 +73,8 @@ error:
 
 #define DArray_free(E) free((E))
 
+#define DArray_for_each(Arr, Ty, E)                                                \
+  for (int i = 0; i < DArray_end(Arr); i++)                                    \
+    for (Ty E = (Ty)DArray_get(Arr, i); E != NULL; E = NULL)
+
 #endif
