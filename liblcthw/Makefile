@@ -17,7 +17,7 @@ all: $(TARGET) $(SO_TARGET) tests
 # %.o: %.c
 # 	$(CC) -c $< $(CFLAGS) -o $@
 
-dev: CFLAGS=-g O0 -Wall -Isrc -Wall -Wextra $(OPTFLAGS)
+dev: CFLAGS=-g -O0 -Wall -Isrc -Wall -Wextra $(OPTFLAGS)
 dev: all
 
 $(TARGET): CFLAGS += -fPIC
